@@ -1,4 +1,6 @@
-// worker/src/warp.js
+// Opera VPN over Cloudflare WARP (MASQUE) —— 单文件版\n// 由 src/ 打包而成，网页部署用。改代码请改 src/ 后重新 npm run build。\n// 仓库 https://github.com/bayueqi/ZQ-WARP\n
+
+// src/warp.js
 var API = "https://api.cloudflareclient.com/v0a4471";
 var H = {
   "User-Agent": "WARP for Android",
@@ -135,7 +137,7 @@ function derLen(n) {
   return [130, n >> 8, n & 255];
 }
 
-// worker/src/md5.js
+// src/md5.js
 function md5Hex(str) {
   const msg = new TextEncoder().encode(str);
   const S = [
@@ -256,7 +258,7 @@ function md5Hex(str) {
   return [...out].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// worker/src/opera.js
+// src/opera.js
 var EP = "https://api2.sec-tunnel.com/v4";
 var API_USER = "se0316";
 var API_PASS = "SILrMEPBmJuhomxWkfm3JalqHX2Eheg1YhlEZiMh8II";
@@ -363,7 +365,7 @@ async function fetchOpera() {
   return { username: idHash, password, landings, fetchedAt: (/* @__PURE__ */ new Date()).toISOString() };
 }
 
-// worker/src/config.js
+// src/config.js
 var V4 = ["162.159.198.1", "162.159.198.2", "162.159.199.1", "162.159.199.2"];
 var V6 = [
   "2606:4700:103::1",
@@ -920,7 +922,7 @@ ${rules}
   };
 }
 
-// worker/src/proton.js
+// src/proton.js
 function parseBlob(text) {
   const raw = String(text || "").trim().replace(/\s+/g, "");
   if (!raw) throw new Error("\u5185\u5BB9\u4E3A\u7A7A");
@@ -940,7 +942,7 @@ function parseBlob(text) {
   return obj;
 }
 
-// worker/src/windscribe.js
+// src/windscribe.js
 var CLIENT_AUTH_SECRET = "952b4412f002315aa50751032fcaab03";
 var API2 = "https://api.windscribe.com";
 var ASSETS = "https://assets.windscribe.com/serverlist";
@@ -1041,7 +1043,7 @@ async function fetchWindscribe(account) {
   return { account, ...cred, servers };
 }
 
-// worker/src/ui.js
+// src/ui.js
 var CSS = `
 :root{
   --bg:#05030e; --bg2:#0a0820;
@@ -1543,7 +1545,7 @@ async function go(p){
 </body></html>`;
 }
 
-// worker/src/auth.js
+// src/auth.js
 var enc = new TextEncoder();
 var ITER = 1e5;
 var b642 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
@@ -1638,7 +1640,7 @@ function normalizePath(p2) {
   return clean;
 }
 
-// worker/src/index.js
+// src/index.js
 var K_WARP = "warp:device";
 var K_CFG = "config:yaml";
 var K_STATE = "state:meta";

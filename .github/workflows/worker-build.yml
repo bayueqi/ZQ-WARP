@@ -1,0 +1,61 @@
+name: 打包 Worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 把打包好的 dist/worker.js 提交回仓库
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: 装依赖
+        working-directory: worker
+        run: |
+          set -euo pipefail
+          # 仓库里没有 package-lock.json，用 npm install 而不是 npm ci
+          npm install --no-audit --no-fund
+
+      - name: 打包
+        working-directory: worker
+        run: |
+          set -euo pipefail
+          npm run build
+          test -s dist/worker.js
+          ls -l dist/worker.js
+
+      - name: 跑测试
+        working-directory: worker
+        run: npm test
+
+      - name: 提交回仓库
+        if: inputs.commit
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add worker/dist/worker.js
+          git diff --staged --quiet && { echo "内容无变化，跳过提交"; exit 0; }
+          git commit -m "自动更新: Worker 打包 ($(date -u '+%F %T') UTC)"
+          git push
+
+      - name: 上传 artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: worker-js
+          path: worker/dist/worker.js
+          retention-days: 7
+          if-no-files-found: error

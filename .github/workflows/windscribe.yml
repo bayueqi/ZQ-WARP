@@ -1,0 +1,79 @@
+name: 取 Windscribe 账号
+
+# Worker 自己开不出可用的号：Cloudflare 的出口 IP 是全平台共享的，
+# 早被别人用过，Windscribe 只会发 status=2 的降额账号（1MB），
+# 那种号连代理凭据都取不到。runner 的 IP 干净，所以放这儿开。
+#
+# 免费额度每月 2GB。用完了手动跑一次这个流水线换个号即可。
+
+on:
+  workflow_dispatch:
+  # 每月 1 号跑一次，对上 Windscribe 的月度重置
+  schedule:
+    - cron: '0 4 1 * *'
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: 注册账号
+        run: |
+          set -euo pipefail
+          # 脚本只用标准库，不装依赖。
+          # 拿到降额号会直接失败退出，不会把不能用的号推出去。
+          python3 scripts/gen_wind.py dist
+
+      - name: 推送到 Worker
+        env:
+          URL: ${{ secrets.WORKER_PUSH_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${URL:-}" ]; then
+            echo "没配 WORKER_PUSH_URL，跳过推送。账号在 artifact 里，可手动粘贴。"
+            exit 0
+          fi
+          # 和 Proton 共用一个推送地址，末尾加 /wind 区分
+          CODE=$(curl -s -o /tmp/resp.json -w '%{http_code}' -X POST "${URL%/}/wind" \
+            --data-binary @dist/wind-account.json)
+          echo "HTTP $CODE"
+          cat /tmp/resp.json; echo
+          [ "$CODE" = "200" ] || { echo "推送失败"; exit 1; }
+
+      - name: 上传 artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wind-account
+          path: dist/wind-account.json
+          retention-days: 1
+          if-no-files-found: ignore
+
+      - name: 摘要
+        if: always()
+        run: |
+          {
+            echo '## Windscribe 账号'
+            echo
+            if [ -s dist/wind-account.json ]; then
+              UID_=$(jq -r .userId dist/wind-account.json)
+              GB=$(jq -r '.trafficMax/1073741824|floor*100/100' dist/wind-account.json)
+              echo "账号 \`$UID_\`，额度 ${GB} GB"
+              echo
+              if [ -n "${{ secrets.WORKER_PUSH_URL }}" ]; then
+                echo '已推送到 Worker，订阅里会出现 Windscribe 线路。'
+              else
+                echo '没配 `WORKER_PUSH_URL`，账号在下面的 artifact 里。'
+              fi
+            else
+              echo '开户没成功。多半是这台 runner 的 IP 被用过了，重跑一次就行。'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

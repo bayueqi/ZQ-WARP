@@ -1,0 +1,91 @@
+name: 取 Proton 凭据
+
+on:
+  workflow_dispatch:
+  # 证书 7 天到期。注意 cron 的 */6 是"日期能被 6 整除"，不是"每隔 6 天"，
+  # 月末衔接会不均匀。取每 3 天跑一次，失败一次也还有余量。
+  schedule:
+    - cron: '0 3 */3 * *'
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: 装依赖
+        run: |
+          set -euo pipefail
+          # 官方库自带 SRP 实现，不用自己写。
+          # 它验 Modulus 的 PGP 签名要 gpg，runner 自带。
+          pip install -q "git+https://github.com/ProtonVPN/python-proton-core.git" cryptography
+          gpg --version | head -1
+
+      - name: 登录并生成凭据
+        env:
+          PROTON_USER: ${{ secrets.PROTON_USER }}
+          PROTON_PASS: ${{ secrets.PROTON_PASS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PROTON_USER:-}" ] || [ -z "${PROTON_PASS:-}" ]; then
+            echo "缺 secrets。到 Settings > Secrets and variables > Actions"
+            echo "加 PROTON_USER（Proton 邮箱）和 PROTON_PASS（密码）"
+            exit 1
+          fi
+          python3 scripts/gen_proton.py dist
+
+      - name: 推送到 Worker
+        env:
+          URL: ${{ secrets.WORKER_PUSH_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${URL:-}" ]; then
+            echo "没配 WORKER_PUSH_URL，跳过推送。凭据在 artifact 里，可手动粘贴。"
+            exit 0
+          fi
+          # 令牌就在地址里，所以只需要这一个 secret
+          CODE=$(curl -s -o /tmp/resp.json -w '%{http_code}' -X POST "$URL" \
+            --data-binary @dist/proton-blob.txt)
+          echo "HTTP $CODE"
+          cat /tmp/resp.json; echo
+          # 404 = 令牌不对（故意不区分"路径不存在"和"没权限"）
+          [ "$CODE" = "200" ] || { echo "推送失败"; exit 1; }
+
+      - name: 摘要
+        if: always()
+        run: |
+          {
+            echo '## Proton 凭据'
+            echo
+            if [ -s dist/proton-blob.txt ]; then
+              if [ -n "${{ secrets.WORKER_PUSH_URL }}" ]; then
+                echo '已自动推送到 Worker，配置随即更新。'
+              else
+                echo '没配推送地址，复制下面这段粘贴到 Worker 管理页：'
+                echo
+                echo '```'
+                cat dist/proton-blob.txt
+                echo '```'
+              fi
+              echo
+              echo '证书 7 天有效，本流水线每 3 天自动跑一次，不用手动管。'
+            else
+              echo '生成失败，看上面的日志。'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 上传 artifact
+        if: success()
+        uses: actions/upload-artifact@v6
+        with:
+          name: proton-blob
+          path: dist/proton-blob.txt
+          retention-days: 7
+          if-no-files-found: error

@@ -1,0 +1,15 @@
+{
+  "name": "zq-warp",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "esbuild src/index.js --bundle --format=esm --target=es2022 --outfile=dist/worker.js --banner:js=\"// Opera VPN over Cloudflare WARP (MASQUE) —— 单文件版\\n// 由 src/ 打包而成，网页部署用。改代码请改 src/ 后重新 npm run build。\\n// 仓库 https://github.com/bayueqi/ZQ-WARP\\n\"",
+    "deploy": "wrangler deploy",
+    "test": "node test/auth.test.mjs && node test/config.test.mjs && node test/route.test.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "wrangler": "^4"
+  }
+}

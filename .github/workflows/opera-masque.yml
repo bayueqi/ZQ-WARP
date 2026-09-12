@@ -1,0 +1,89 @@
+name: Opera over MASQUE（套娃）
+
+on:
+  workflow_dispatch:
+    inputs:
+      device_name:
+        description: WARP 设备名（后台显示用）
+        required: false
+        default: gh-actions
+      commit:
+        description: 把生成的 yaml 提交回仓库
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 下载 usque
+        run: |
+          set -euo pipefail
+          VER=$(curl -sL https://api.github.com/repos/Diniboy1123/usque/releases/latest \
+                | jq -r '.tag_name' | sed 's/^v//')
+          echo "usque $VER"
+          curl -sL -o usque.zip \
+            "https://github.com/Diniboy1123/usque/releases/download/v${VER}/usque_${VER}_linux_amd64.zip"
+          unzip -oq usque.zip && chmod +x usque
+
+      - name: 下载 opera-proxy
+        run: |
+          set -euo pipefail
+          # 原作者 Snawoot 已删号，用社区 fork
+          VER=$(curl -sL https://api.github.com/repos/snawoot-proxies-forks/opera-proxy/releases/latest \
+                | jq -r '.tag_name')
+          echo "opera-proxy $VER"
+          curl -sL -o opera-proxy \
+            "https://github.com/snawoot-proxies-forks/opera-proxy/releases/download/${VER}/opera-proxy.linux-amd64"
+          chmod +x opera-proxy
+
+      - name: 注册 WARP 设备
+        run: |
+          set -euo pipefail
+          ./usque register -a -n "${{ inputs.device_name || 'gh-actions' }}"
+          test -s config.json
+          python3 -c "
+          import json; c=json.load(open('config.json'))
+          print('endpoint_v4 =', c['endpoint_v4'])
+          print('内网地址 =', c['ipv4'], '/', c['ipv6'])"
+
+      - name: 生成配置
+        run: python3 scripts/gen_opera_masque.py config.json ./opera-proxy dist
+
+      - name: 校验配置可加载
+        run: |
+          set -euo pipefail
+          URL=$(curl -sL https://api.github.com/repos/MetaCubeX/mihomo/releases \
+                | grep -o 'https://[^"]*mihomo-linux-amd64-alpha[^"]*\.gz' | head -1)
+          curl -sL -o mihomo.gz "$URL"
+          gunzip -f mihomo.gz && chmod +x mihomo
+          mkdir -p check && cp dist/opera-masque.yaml check/config.yaml
+          ./mihomo -t -d check
+          echo "配置校验通过"
+
+      - name: 提交回仓库
+        if: inputs.commit
+        run: |
+          set -euo pipefail
+          mkdir -p configs
+          cp dist/opera-masque.yaml configs/opera-masque.yaml
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add configs/opera-masque.yaml
+          git diff --staged --quiet && { echo "内容无变化，跳过提交"; exit 0; }
+          git commit -m "自动更新: Opera over MASQUE 配置 ($(date -u '+%F %T') UTC)"
+          git push
+
+      - name: 上传 artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: opera-masque
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error

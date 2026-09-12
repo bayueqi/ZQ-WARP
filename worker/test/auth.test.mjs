@@ -45,10 +45,10 @@ const kv = { m: new Map(),
   async put(k, v) { this.m.set(k, v); },
   async delete(k) { this.m.delete(k); } };
 let allowed = 0;
-for (let i = 0; i < 12; i++) if (await rateLimit({ KV: kv }, "1.2.3.4")) allowed++;
+for (let i = 0; i < 12; i++) if (await rateLimit({ warp: kv }, "1.2.3.4")) allowed++;
 t(`限速第 8 次后拦截 (放行 ${allowed} 次)`, allowed === 8);
-await clearRateLimit({ KV: kv }, "1.2.3.4");
-t("登录成功后重置限速", await rateLimit({ KV: kv }, "1.2.3.4"));
+await clearRateLimit({ warp: kv }, "1.2.3.4");
+t("登录成功后重置限速", await rateLimit({ warp: kv }, "1.2.3.4"));
 
 console.log(`\n通过 ${pass} 失败 ${fail}`);
 if (fail) process.exit(1);

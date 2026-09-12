@@ -8,7 +8,7 @@ let kv, env;
 function reset() {
   kv = new Map();
   env = {
-    KV: {
+    warp: {
       async get(k, t) { const v = kv.get(k); return t === "json" && v ? JSON.parse(v) : v ?? null; },
       async put(k, v) { kv.set(k, v); },
       async delete(k) { kv.delete(k); },
@@ -58,7 +58,7 @@ t("已初始化后 /api/setup 不可用",
 // 真正的竞态：两个请求同时读到 cred 为空
 {
   const k2 = new Map();
-  const e2 = { KV: {
+  const e2 = { warp: {
     async get(k, t) { const v = k2.get(k); return t === "json" && v ? JSON.parse(v) : v ?? null; },
     async put(k, v) { k2.set(k, v); },
     async delete(k) { k2.delete(k); } } };

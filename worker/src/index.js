@@ -12,7 +12,7 @@ import { fetchOpera } from "./opera.js";
 import { buildConfig } from "./config.js";
 import { parseBlob } from "./proton.js";
 import { fetchWindscribe, fetchSession } from "./windscribe.js";
-import { renderUI, renderLogin, renderSetup, renderNoKV } from "./ui.js";
+import { renderUI, renderLogin, renderSetup, renderNoKV, ICON_SVG } from "./ui.js";
 import {
   safeEqual, makeCred, checkPassword, signToken, verifyToken,
   readCookie, rateLimit, clearRateLimit, normalizePath,
@@ -164,6 +164,16 @@ export default {
     const url = new URL(req.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
     const ip = req.headers.get("cf-connecting-ip") || "unknown";
+
+    // 站点图标：同源、公开、不需要登录。原来指向图床的外链已失效，图标由 worker 自己给。
+    if (path === "/favicon.svg") {
+      return new Response(ICON_SVG, {
+        headers: {
+          "content-type": "image/svg+xml; charset=UTF-8",
+          "cache-control": "public, max-age=604800",
+        },
+      });
+    }
 
     // KV 没绑就没法工作，给个明确指引而不是报一堆栈
     if (!env || !env.warp) return html(renderNoKV(), 500);

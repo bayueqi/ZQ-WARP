@@ -1,4 +1,9 @@
 // 界面沿用 cfnew 的赛博朋克终端风：青/品红霓虹、等宽字体、扫描线。
+
+// 站点图标：同源提供，不再依赖图床（原来那张 img.520jacky.dpdns.org 的图已 530）。
+// 内容就是原来的 955938.svg 原图，未改动。
+export const ICON_SVG = `<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1789193060090" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1714" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><path d="M236.982857 332.068571c-17.554286 4.388571-35.108571-8.777143-35.108571-26.331429L201.874286 204.8c1.462857 0 1.462857-1.462857 1.462857-1.462857l99.474286 0c19.017143 0 32.182857 17.554286 26.331429 35.108571C317.44 283.794286 282.331429 318.902857 236.982857 332.068571z" p-id="1715"></path><path d="M201.874286 545.645714l0-76.068571c0-14.628571 11.702857-26.331429 24.868571-27.794286 112.64-11.702857 203.337143-100.937143 215.04-212.114286 1.462857-14.628571 13.165714-24.868571 27.794286-24.868571l76.068571 0c16.091429 0 29.257143 13.165714 27.794286 29.257143-14.628571 181.394286-160.914286 324.754286-342.308571 339.382857C215.04 574.902857 201.874286 561.737143 201.874286 545.645714z" p-id="1716"></path><path d="M201.874286 791.405714l0-76.068571c0-14.628571 11.702857-26.331429 26.331429-27.794286 248.685714-13.165714 450.56-210.651429 463.725714-457.874286 1.462857-14.628571 13.165714-26.331429 27.794286-26.331429l76.068571 0c16.091429 0 29.257143 13.165714 27.794286 29.257143-14.628571 315.977143-272.091429 570.514286-590.994286 586.605714C215.04 820.662857 201.874286 807.497143 201.874286 791.405714z" p-id="1717"></path></svg>`;
+
 const CSS = `
 :root{
   --bg:#05030e; --bg2:#0a0820;
@@ -77,7 +82,7 @@ export function renderNoKV() {
 <html lang="zh-CN"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" type="image/svg+xml" href="https://img.520jacky.dpdns.org/i/2026/09/12/009586.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>ZQ-WARP</title>
 <style>${CSS}
 .wrap{width:100%;max-width:520px;position:relative;z-index:2;min-width:0;align-self:center}
@@ -108,7 +113,7 @@ export function renderSetup() {
 <html lang="zh-CN"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" type="image/svg+xml" href="https://img.520jacky.dpdns.org/i/2026/09/12/009586.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>ZQ-WARP</title>
 <style>${CSS}
 .wrap{width:100%;max-width:430px;position:relative;z-index:2;min-width:0;align-self:center}
@@ -161,7 +166,7 @@ export function renderLogin(err) {
 <html lang="zh-CN"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" type="image/svg+xml" href="https://img.520jacky.dpdns.org/i/2026/09/12/009586.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>ZQ-WARP</title>
 <style>${CSS}
 .wrap{width:100%;max-width:400px;position:relative;z-index:2;min-width:0;align-self:center}
@@ -231,7 +236,7 @@ export function renderUI(state, host, sp, token, cred, pushToken, protonCred, wi
 <html lang="zh-CN"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" type="image/svg+xml" href="https://img.520jacky.dpdns.org/i/2026/09/12/009586.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>ZQ-WARP</title>
 <style>${CSS}
 .wrap{width:100%;max-width:880px;position:relative;z-index:2;min-width:0}
